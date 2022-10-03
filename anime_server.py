@@ -1,15 +1,18 @@
+"""server
+"""
+
 from concurrent.futures import ThreadPoolExecutor
-from pickletools import uint8
-
 import grpc
-
-import definitions.builds.service_pb2
+import guru_logic as gl
 from definitions.builds.service_pb2 import Fact, FactBasis, AnimeRequest, AnimeAdvice
-from definitions.builds.service_pb2_grpc import TestServiceServicer, add_TestServiceServicer_to_server
+from definitions.builds.service_pb2_grpc import TestServiceServicer
+from definitions.builds.service_pb2_grpc import add_TestServiceServicer_to_server
 
 class AnimeGuru(TestServiceServicer):
-    def tell_me_a_fact(self, fact_basis : FactBasis, context) -> Fact:
-        """tell a fact about anime title
+    """guru that can give you facts and advices
+    """
+    def tell_me_a_fact(self, request : FactBasis, context) -> Fact:
+        """give response with 100% true fact about anime
 
         Args:
             fact_basis (FactBasis): contains only title's name by now
@@ -19,39 +22,27 @@ class AnimeGuru(TestServiceServicer):
             Fact: absolutely real fact
         """
         fact = Fact()
-        anime_name : str = fact_basis.anime_name 
-        fact.fact_data = anime_name.upper() + " IS THE BEST ANIME IN THE WORLD!!!"
+        anime_name : str = request.anime_name
+        fact.fact_data = gl.create_a_fact(anime_name)
         return fact
 
     def get_advice(self, request : AnimeRequest, context) -> AnimeAdvice:
-        """get advice to decide what anime to watch
+        """give response with advice in order to decide what anime you need to watch
 
         Args:
             request (AnimeRequest): contains anime fan's age
             context (Any): lame request context
 
         Returns:
-            AnimeAdvice: good advice from anime guru
+            AnimeAdvice: good advice from the anime guru
         """
         age : int = request.age
-        advice_data = ""
-        if age < 6:
-            advice_data = "Boku no Piko"
-        elif 6 <= age < 12:
-            advice_data = "JoJo's Bizarre Adventure"
-        elif 12 <= age < 18:
-            advice_data = "Blend S"
-        elif 18 <= age < 24:
-            advice_data = "duuude, you'd better study instead of searching waifus"
-        elif 24 <= age < 30:
-            advice_data = "maaaaan, you'd better work instead of searching waifus"
-        else:
-            advice_data = "Hello kitty"
-        
-        advice = AnimeAdvice(advice_data=advice_data)
+        advice = AnimeAdvice(advice_data=gl.create_advice(age))
         return advice
 
 def execute_server():
+    """run server
+    """
     server = grpc.server(ThreadPoolExecutor(max_workers=10))
     add_TestServiceServicer_to_server(AnimeGuru(), server)
     server.add_insecure_port("[::]:3000")
