@@ -1,0 +1,23 @@
+// service.proto
+syntax = "proto3";
+
+message FactBasis {
+    string anime_name = 1;
+}
+
+message AnimeRequest {
+  uint32 age = 1;
+}
+
+message AnimeAdvice {
+  string advice_data = 1;
+}
+
+message Fact {
+    string fact_data = 1;
+}
+
+service TestService {
+  rpc tell_me_a_fact(FactBasis) returns (Fact);
+  rpc get_advice(AnimeRequest) returns (AnimeAdvice);
+}
